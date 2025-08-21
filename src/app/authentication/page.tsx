@@ -2,6 +2,7 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SignupFormComponent from "./components/signup-form";
+import LoginFormComponent from "./components/login-form";
 
 const AuthenticationPage = () => {
   return (
@@ -13,7 +14,7 @@ const AuthenticationPage = () => {
         </TabsList>
 
         <TabsContent value="login">
-          {/* Aqui vai o formulário de login */}
+          <LoginFormComponent />
         </TabsContent>
 
         <TabsContent value="register">
