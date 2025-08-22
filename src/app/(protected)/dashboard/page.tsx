@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import SignoutButtonComponent from "./components/signOutButton";
+import SignoutButtonComponent from "./_components/signOutButton";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { eq } from "drizzle-orm";
