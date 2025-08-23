@@ -15,8 +15,8 @@ dayjs.extend(utc);
 export const upsertDoctor = actionClient
   .inputSchema(upsertDoctorSchema)
   .action(async ({ parsedInput: data }) => {
-    const availableFromTime = data.availableFromTime; // 15:30:00
-    const availableToTime = data.availableToTime; // 16:00:00
+    const availableFromTime = data.availableFromTime;
+    const availableToTime = data.availableToTime;
 
     const availableFromTimeUTC = dayjs()
       .set("hour", parseInt(availableFromTime.split(":")[0]))
@@ -44,7 +44,6 @@ export const upsertDoctor = actionClient
     await db
       .insert(doctorsTable)
       .values({
-        id: data.id,
         ...data,
         clinicId: session?.user.clinic?.id,
         availableFromTime: availableFromTimeUTC.format("HH:mm:ss"),
@@ -60,4 +59,5 @@ export const upsertDoctor = actionClient
       });
 
     revalidatePath("/doctors");
+    console.log("doctor id", data.id);
   });

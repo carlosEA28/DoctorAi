@@ -61,7 +61,13 @@ const DoctorCardComponent = ({ doctor }: DoctorCardProps) => {
           <DialogTrigger asChild>
             <Button className="w-full">Ver detalhes</Button>
           </DialogTrigger>
-          <UpsertDoctorForm />
+          <UpsertDoctorForm
+            doctor={{
+              ...doctor,
+              availableFromTime: avalibility.from.format("HH:mm:ss"),
+              availableToTime: avalibility.to.format("HH:mm:ss"),
+            }}
+          />
         </Dialog>
       </CardFooter>
     </Card>

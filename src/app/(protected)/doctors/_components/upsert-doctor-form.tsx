@@ -24,6 +24,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { NumericFormat } from "react-number-format";
 
@@ -33,7 +45,9 @@ import { medicalSpecialties } from "../_constants";
 import { useAction } from "next-safe-action/hooks";
 import { upsertDoctor } from "@/actions/upsert-doctor";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, TrashIcon } from "lucide-react";
+import { doctorsTable } from "@/db/schema";
+import { deleteDoctor } from "@/actions/delete-doctor";
 
 const formSchema = z
   .object({
@@ -54,19 +68,22 @@ const formSchema = z
 
 interface UpsertDoctorFormProps {
   onSucess?: () => void;
+  doctor?: typeof doctorsTable.$inferSelect;
 }
 
-const UpsertDoctorForm = ({ onSucess }: UpsertDoctorFormProps) => {
+const UpsertDoctorForm = ({ onSucess, doctor }: UpsertDoctorFormProps) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      specialty: "",
-      appointmentPrice: 0,
-      availableFromTime: "",
-      availableToTime: "",
-      availableFromWeekDay: "1", // string
-      availableToWeekDay: "5", // string
+      name: doctor?.name || "",
+      specialty: doctor?.specialty || "",
+      appointmentPrice: doctor?.appointmentPriceInCents
+        ? doctor?.appointmentPriceInCents / 100
+        : 0,
+      availableFromTime: doctor?.availableFromTime || "",
+      availableToTime: doctor?.availableToTime || "",
+      availableFromWeekDay: doctor?.availableFromWeekDay.toString() || "1",
+      availableToWeekDay: doctor?.availableToWeekDay.toString() || "5",
     },
   });
 
@@ -81,14 +98,32 @@ const UpsertDoctorForm = ({ onSucess }: UpsertDoctorFormProps) => {
     },
   });
 
+  const deleteDoctorAction = useAction(deleteDoctor, {
+    onSuccess: () => {
+      toast.success("Médico excluído com sucesso");
+      onSucess?.();
+    },
+
+    onError: () => {
+      toast.error("Erro ao excluir médico");
+    },
+  });
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     upsertDoctorAction.execute({
+      id: doctor?.id,
       ...values,
       availableFromWeekDay: Number(values.availableFromWeekDay),
       availableToWeekDay: Number(values.availableToWeekDay),
 
       appointmentPriceInCents: values.appointmentPrice * 100,
     });
+  };
+
+  const handleDeleteDoctorClick = () => {
+    if (!doctor) return;
+
+    deleteDoctorAction.execute({ id: doctor.id });
   };
 
   return (
@@ -360,6 +395,31 @@ const UpsertDoctorForm = ({ onSucess }: UpsertDoctorFormProps) => {
             )}
           />
           <DialogFooter>
+            {doctor && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline">
+                    <TrashIcon />
+                    Deletar
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Tem certeza ?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta ação não pode ser desfeita. O registro será excluído
+                      permanentemente.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteDoctorClick}>
+                      Continuar
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
             <Button type="submit" disabled={upsertDoctorAction.isPending}>
               {upsertDoctorAction.isPending ? (
                 <Loader2 size={16} className="h-4 w-4 animate-spin" />
