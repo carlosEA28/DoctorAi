@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import z from "zod";
-import { createClinic } from "../../../../../actions/create-clinic";
+import { createClinic } from "../../../../actions/create-clinic";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { isRedirectError } from "next/dist/client/components/redirect-error";

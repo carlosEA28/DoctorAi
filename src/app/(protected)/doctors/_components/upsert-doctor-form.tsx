@@ -30,57 +30,67 @@ import { NumericFormat } from "react-number-format";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import { medicalSpecialties } from "../_constants";
+import { useAction } from "next-safe-action/hooks";
+import { upsertDoctor } from "@/actions/upsert-doctor";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 const formSchema = z
   .object({
-    name: z.string().trim().min(1, { message: "O nome é obrigatório" }),
-    speciality: z
-      .string()
-      .trim()
-      .min(1, { message: "Especialidade é obrigatória" }),
-    appointmentPrice: z.number().min(1, {
-      message: "Preço é obrigatório",
-    }),
-    availableFromWeekDay: z.number(),
-    availableToWeekDay: z.number(),
-    availablefromTime: z
-      .string()
-      .trim()
-      .min(1, { message: "O nome é obrigatório" }),
-    availableToTime: z
-      .string()
-      .trim()
-      .min(1, { message: "O nome é obrigatório" }),
+    name: z.string().min(1, { message: "O nome é obrigatório" }),
+    specialty: z.string().min(1, { message: "Especialidade é obrigatória" }),
+    appointmentPrice: z.coerce
+      .number()
+      .min(1, { message: "Preço é obrigatório" }),
+    availableFromWeekDay: z.string().min(1),
+    availableToWeekDay: z.string().min(1),
+    availableFromTime: z.string().min(1),
+    availableToTime: z.string().min(1),
   })
-  .refine(
-    (data) => {
-      if (data.availablefromTime < data.availableToTime) {
-        return true;
-      }
-    },
-    {
-      message: "O horário de início deve ser anterior ao horário de término",
-      path: ["availableToTime"],
-    },
-  );
+  .refine((data) => data.availableFromTime < data.availableToTime, {
+    message: "O horário de início deve ser anterior ao horário de término",
+    path: ["availableToTime"],
+  });
 
-const onSubmit = (values: z.infer<typeof formSchema>) => {
-  console.log(values);
-};
+interface UpsertDoctorFormProps {
+  onSucess?: () => void;
+}
 
-const UpsertDoctorForm = () => {
+const UpsertDoctorForm = ({ onSucess }: UpsertDoctorFormProps) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      speciality: "",
+      specialty: "",
       appointmentPrice: 0,
-      availablefromTime: "",
+      availableFromTime: "",
       availableToTime: "",
-      availableFromWeekDay: 0,
-      availableToWeekDay: 0,
+      availableFromWeekDay: "1", // string
+      availableToWeekDay: "5", // string
     },
   });
+
+  const upsertDoctorAction = useAction(upsertDoctor, {
+    onSuccess: () => {
+      toast.success("Médico adicionado com sucesso");
+      onSucess?.();
+    },
+
+    onError: () => {
+      toast.error("Erro ao adicionar médico");
+    },
+  });
+
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    upsertDoctorAction.execute({
+      ...values,
+      availableFromWeekDay: Number(values.availableFromWeekDay),
+      availableToWeekDay: Number(values.availableToWeekDay),
+
+      appointmentPriceInCents: values.appointmentPrice * 100,
+    });
+  };
+
   return (
     <DialogContent>
       <DialogHeader>
@@ -105,7 +115,7 @@ const UpsertDoctorForm = () => {
 
           <FormField
             control={form.control}
-            name="speciality"
+            name="specialty"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Especialidade</FormLabel>
@@ -213,7 +223,7 @@ const UpsertDoctorForm = () => {
           />
           <FormField
             control={form.control}
-            name="availablefromTime"
+            name="availableFromTime"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Horário inicial de disponibilidade</FormLabel>
@@ -350,7 +360,13 @@ const UpsertDoctorForm = () => {
             )}
           />
           <DialogFooter>
-            <Button type="submit">Adicionar</Button>
+            <Button type="submit" disabled={upsertDoctorAction.isPending}>
+              {upsertDoctorAction.isPending ? (
+                <Loader2 size={16} className="h-4 w-4 animate-spin" />
+              ) : (
+                "Adicionar"
+              )}
+            </Button>
           </DialogFooter>
         </form>
       </Form>
