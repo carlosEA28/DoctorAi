@@ -53,7 +53,7 @@ const formSchema = z
   .object({
     name: z.string().min(1, "Nome é obrigatório"),
     specialty: z.string().min(1, "Especialidade é obrigatória"),
-    appointmentPrice: z.coerce.number().min(1, "Preço é obrigatório"),
+    appointmentPriceInCents: z.number().min(1, "Preço é obrigatório"),
     availableFromWeekDay: z.string(),
     availableToWeekDay: z.string(),
     availableFromTime: z.string(),
@@ -69,19 +69,19 @@ interface UpsertDoctorFormProps {
   doctor?: typeof doctorsTable.$inferSelect;
 }
 
+type FormSchema = z.infer<typeof formSchema>;
+
 const UpsertDoctorForm = ({ onSucess, doctor }: UpsertDoctorFormProps) => {
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: doctor?.name || "",
       specialty: doctor?.specialty || "",
-      appointmentPrice: doctor?.appointmentPriceInCents
-        ? doctor?.appointmentPriceInCents / 100
-        : 0,
+      appointmentPriceInCents: doctor?.appointmentPriceInCents ?? 0,
+      availableFromWeekDay: doctor?.availableFromWeekDay?.toString() ?? "",
+      availableToWeekDay: doctor?.availableToWeekDay?.toString() ?? "",
       availableFromTime: doctor?.availableFromTime || "",
       availableToTime: doctor?.availableToTime || "",
-      availableFromWeekDay: doctor?.availableFromWeekDay.toString() || "1",
-      availableToWeekDay: doctor?.availableToWeekDay.toString() || "5",
     },
   });
 
@@ -114,7 +114,7 @@ const UpsertDoctorForm = ({ onSucess, doctor }: UpsertDoctorFormProps) => {
       availableFromWeekDay: Number(values.availableFromWeekDay),
       availableToWeekDay: Number(values.availableToWeekDay),
 
-      appointmentPriceInCents: values.appointmentPrice * 100,
+      appointmentPriceInCents: values.appointmentPriceInCents,
     });
   };
 
@@ -173,14 +173,14 @@ const UpsertDoctorForm = ({ onSucess, doctor }: UpsertDoctorFormProps) => {
 
           <FormField
             control={form.control}
-            name="appointmentPrice"
+            name="appointmentPriceInCents"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Preço da consulta</FormLabel>
                 <NumericFormat
-                  value={field.value}
+                  value={field.value?.toString()}
                   onValueChange={(value) => {
-                    field.onChange(value.floatValue);
+                    field.onChange((value.floatValue ?? 0) * 100);
                   }}
                   decimalScale={2}
                   fixedDecimalScale
