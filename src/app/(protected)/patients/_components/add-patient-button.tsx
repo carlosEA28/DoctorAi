@@ -23,11 +23,11 @@ export function AddPatientButton() {
           Adicionar Paciente
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Adicionar Paciente</DialogTitle>
         </DialogHeader>
-        <UpsertPatientForm onSuccess={() => setIsOpen(false)} />
+        <UpsertPatientForm isOpen={isOpen} onSuccess={() => setIsOpen(false)} />
       </DialogContent>
     </Dialog>
   );

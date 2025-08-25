@@ -2,14 +2,8 @@
 
 import { patientsTable } from "@/db/schema";
 import { ColumnDef } from "@tanstack/react-table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Edit, MoreVerticalIcon, TrashIcon } from "lucide-react";
+import PatientTableActionsComponent from "./table-actions";
+import PatientsTableActions from "./table-actions";
 
 type Patient = typeof patientsTable.$inferInsert;
 
@@ -38,26 +32,17 @@ export const patientsColumnsTable: ColumnDef<Patient>[] = [
       return patient.sex === "male" ? "Masculino" : "Feminino";
     },
   },
+
   {
     id: "actions",
-    cell: () => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant={"ghost"} size={"icon"}>
-            <MoreVerticalIcon className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuItem>
-            <Edit />
-            Editar
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <TrashIcon />
-            Deletar
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
+    cell: ({ row }) => {
+      return (
+        <PatientsTableActions
+          patient={
+            row.original as typeof patientsTable.$inferSelect & { id: string }
+          }
+        />
+      );
+    },
   },
 ];

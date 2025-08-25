@@ -28,12 +28,20 @@ import {
 } from "@/actions/upsert-patient/schema";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { patientsTable } from "@/db/schema";
+import { useEffect } from "react";
 
 interface UpserPatientProps {
+  isOpen: boolean;
   onSuccess?: () => void;
+  patient?: typeof patientsTable.$inferSelect;
 }
 
-export function UpsertPatientForm({ onSuccess }: UpserPatientProps) {
+export function UpsertPatientForm({
+  onSuccess,
+  isOpen,
+  patient,
+}: UpserPatientProps) {
   const form = useForm<UpsertPatientSchema>({
     resolver: zodResolver(upsertPatientSchema),
     defaultValues: {
@@ -43,6 +51,21 @@ export function UpsertPatientForm({ onSuccess }: UpserPatientProps) {
       gender: undefined,
     },
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      form.reset({
+        name: patient?.name ?? "",
+        email: patient?.email ?? "",
+        phone: patient?.phoneNumber ?? "", // mapeia pro nome do form
+        gender: (patient?.sex === "male"
+          ? "Masculino"
+          : patient?.sex === "female"
+            ? "Feminino"
+            : undefined) as "Masculino" | "Feminino" | undefined, // mapeia pro nome do form
+      });
+    }
+  }, [isOpen, form, patient]);
 
   const { execute, status } = useAction(upsertPatient, {
     onSuccess: () => {
