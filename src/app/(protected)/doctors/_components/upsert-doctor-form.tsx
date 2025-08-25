@@ -51,15 +51,13 @@ import { deleteDoctor } from "@/actions/delete-doctor";
 
 const formSchema = z
   .object({
-    name: z.string().min(1, { message: "O nome é obrigatório" }),
-    specialty: z.string().min(1, { message: "Especialidade é obrigatória" }),
-    appointmentPrice: z.coerce
-      .number()
-      .min(1, { message: "Preço é obrigatório" }),
-    availableFromWeekDay: z.string().min(1),
-    availableToWeekDay: z.string().min(1),
-    availableFromTime: z.string().min(1),
-    availableToTime: z.string().min(1),
+    name: z.string().min(1, "Nome é obrigatório"),
+    specialty: z.string().min(1, "Especialidade é obrigatória"),
+    appointmentPrice: z.coerce.number().min(1, "Preço é obrigatório"),
+    availableFromWeekDay: z.string(),
+    availableToWeekDay: z.string(),
+    availableFromTime: z.string(),
+    availableToTime: z.string(),
   })
   .refine((data) => data.availableFromTime < data.availableToTime, {
     message: "O horário de início deve ser anterior ao horário de término",
