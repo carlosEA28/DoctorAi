@@ -6,7 +6,7 @@ export const upsertPatientSchema = z.object({
   email: z.string().email("Email inválido"),
   phone: z.string().min(1, "Número de telefone é obrigatório"),
   gender: z.enum(["Masculino", "Feminino"], {
-    invalid_type_error: "Sexo é obrigatório",
+    message: "Sexo é obrigatório",
   }),
 });
 
